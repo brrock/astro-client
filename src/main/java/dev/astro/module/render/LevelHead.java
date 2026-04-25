@@ -147,7 +147,6 @@ public final class LevelHead extends Module {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (mc.gameSettings.hideGUI) return;
-        if (!inGame) return;
 
         if (System.currentTimeMillis() - lastCacheClear > 30000L) {
             bedwarsLevelCache.clear();
@@ -447,10 +446,11 @@ public final class LevelHead extends Module {
     }
 
     public String getInlineDisplay(EntityPlayer player) {
-        if (!isEnabled() || !inGame || player == null) return null;
+        if (!isEnabled() || player == null) return null;
 
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null || mc.theWorld == null) return null;
+        if (!shouldRender(player, mc, Integer.MAX_VALUE)) return null;
         if (!showOwnLevel.getValue() && player == mc.thePlayer) return null;
 
         int bedwarsLevel = getBedwarsLevel(player);

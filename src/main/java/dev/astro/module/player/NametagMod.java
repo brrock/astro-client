@@ -9,6 +9,7 @@ import dev.astro.module.setting.ColorSetting;
 import dev.astro.module.setting.NumberSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -61,6 +62,7 @@ public final class NametagMod extends Module {
 
         EntityPlayer player = (EntityPlayer) event.entity;
         Minecraft mc = Minecraft.getMinecraft();
+        if (!shouldRender(player, mc)) return;
 
         // Don't replace own nametag in first-person
         if (player == mc.thePlayer && mc.gameSettings.thirdPersonView == 0) return;
@@ -100,7 +102,7 @@ public final class NametagMod extends Module {
         if (showHealth.getValue()) {
             float totalHealth = player.getHealth() + player.getAbsorptionAmount();
             int hp = (int) Math.ceil(totalHealth);
-            name = name + " \u00a77|\u00a7r " + getHealthColor(totalHealth) + hp + "\u2764";
+            name = name + " \u00a77|\u00a7r \u00a7c" + hp + "\u2764";
         }
 
         float scaleMul = nameScale.getFloatValue();
@@ -155,9 +157,16 @@ public final class NametagMod extends Module {
         GlStateManager.popMatrix();
     }
 
-    private static String getHealthColor(float health) {
-        if (health <= 6.0F) return "\u00a74";
-        if (health <= 12.0F) return "\u00a76";
-        return "\u00a7a";
+    private static boolean shouldRender(EntityPlayer player, Minecraft mc) {
+        if (player.isDead) return false;
+        if (player.isInvisible()) return false;
+        if (player.isInvisibleToPlayer(mc.thePlayer)) return false;
+        return isTrackedPlayer(player, mc);
+    }
+
+    private static boolean isTrackedPlayer(EntityPlayer player, Minecraft mc) {
+        if (mc.getNetHandler() == null) return false;
+        NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(player.getUniqueID());
+        return info != null;
     }
 }
