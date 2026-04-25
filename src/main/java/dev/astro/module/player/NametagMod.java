@@ -3,6 +3,7 @@ package dev.astro.module.player;
 import dev.astro.AstroClient;
 import dev.astro.module.Category;
 import dev.astro.module.Module;
+import dev.astro.module.render.LevelHead;
 import dev.astro.module.setting.BooleanSetting;
 import dev.astro.module.setting.ColorSetting;
 import dev.astro.module.setting.NumberSetting;
@@ -35,7 +36,7 @@ public final class NametagMod extends Module {
     private final NumberSetting nameScale = addSetting(
             new NumberSetting("Scale", "Nametag size multiplier", 1.0, 0.5, 3.0, 0.1));
     private final BooleanSetting showHealth = addSetting(
-            new BooleanSetting("Show Health", "Display health beside name", false));
+            new BooleanSetting("Show Health", "Display health beside name", true));
 
     public NametagMod() {
         super("Nametags",
@@ -82,6 +83,14 @@ public final class NametagMod extends Module {
         // Build display string
         String name = player.getDisplayName().getFormattedText();
 
+        LevelHead levelHead = AstroClient.INSTANCE.getModuleManager().getByClass(LevelHead.class);
+        if (levelHead != null) {
+            String levelText = levelHead.getInlineDisplay(player);
+            if (levelText != null && !levelText.isEmpty()) {
+                name = "\u00a7e" + levelText + " \u00a7r" + name;
+            }
+        }
+
         // AstroClient user icon
         if (AstroClient.INSTANCE.getAstroUsers() != null
                 && AstroClient.INSTANCE.getAstroUsers().isAstroUser(player.getUniqueID())) {
@@ -89,8 +98,9 @@ public final class NametagMod extends Module {
         }
 
         if (showHealth.getValue()) {
-            int hp = (int) Math.ceil(player.getHealth());
-            name = name + " \u00a7c" + hp + "\u2764";
+            float totalHealth = player.getHealth() + player.getAbsorptionAmount();
+            int hp = (int) Math.ceil(totalHealth);
+            name = name + " \u00a77|\u00a7r " + getHealthColor(totalHealth) + hp + "\u2764";
         }
 
         float scaleMul = nameScale.getFloatValue();
@@ -143,5 +153,11 @@ public final class NametagMod extends Module {
         GlStateManager.depthMask(true);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.popMatrix();
+    }
+
+    private static String getHealthColor(float health) {
+        if (health <= 6.0F) return "\u00a74";
+        if (health <= 12.0F) return "\u00a76";
+        return "\u00a7a";
     }
 }

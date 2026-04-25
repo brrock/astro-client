@@ -37,8 +37,7 @@ import java.util.UUID;
 
 /**
  * Displays each player's Bedwars star, Hypixel level, or both above their nametag.
- * Uses RenderWorldLastEvent for reliable rendering — independent of
- * entity render events which NametagMod cancels.
+ * Also exposes inline text so NametagMod can fold level data into its custom tag.
  */
 public final class LevelHead extends Module {
 
@@ -447,6 +446,28 @@ public final class LevelHead extends Module {
         GlStateManager.popMatrix();
     }
 
+    public String getInlineDisplay(EntityPlayer player) {
+        if (!isEnabled() || !inGame || player == null) return null;
+
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null || mc.theWorld == null) return null;
+        if (!showOwnLevel.getValue() && player == mc.thePlayer) return null;
+
+        int bedwarsLevel = getBedwarsLevel(player);
+        int hypixelLevel = getHypixelLevel(player);
+        if (bedwarsLevel < 0 && hypixelLevel < 0) return null;
+
+        String mode = displayMode.getValue();
+        if ("Hypixel Level".equals(mode)) {
+            return "[LEVEL " + (hypixelLevel >= 0 ? hypixelLevel : "?") + "]";
+        }
+        if ("Both".equals(mode)) {
+            return "[BW " + (bedwarsLevel >= 0 ? bedwarsLevel + getPrestigeIcon(bedwarsLevel) : "?")
+                    + " | LEVEL " + (hypixelLevel >= 0 ? hypixelLevel : "?") + "]";
+        }
+        return "[BW " + (bedwarsLevel >= 0 ? bedwarsLevel + getPrestigeIcon(bedwarsLevel) : "?") + "]";
+    }
+
     private String[] buildDisplayParts(int bedwarsLevel, int hypixelLevel) {
         String mode = displayMode.getValue();
         String starText = bedwarsLevel >= 0 ? (bedwarsLevel + getPrestigeIcon(bedwarsLevel)) : "?";
@@ -463,7 +484,7 @@ public final class LevelHead extends Module {
             if (hypixelLevel < 0) {
                 return new String[] { "BW: ", starText };
             }
-            return new String[] { "BW: " + starText + " | HP: ", hypixelText };
+            return new String[] { "BW: " + starText + " | Level: ", hypixelText };
         }
 
         return new String[] { "BW: ", starText };
