@@ -76,6 +76,8 @@ public abstract class Module {
         return getActivationMode() == ActivationMode.TOGGLE;
     }
 
+    public boolean allowsKeyBind() { return false; }
+
     public void setEnabled(boolean state) {
         if (this.enabled == state) return;
 
@@ -106,6 +108,8 @@ public abstract class Module {
     public int      getKeyBind()     { return keyBind; }
     public boolean  isVisible()      { return visible; }
 
-    public void setKeyBind(int keyBind) { this.keyBind = keyBind; }
+    public void setKeyBind(int keyBind) {
+        this.keyBind = allowsKeyBind() ? keyBind : Keyboard.KEY_NONE;
+    }
     public void setVisible(boolean v)   { this.visible = v; }
 }

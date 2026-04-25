@@ -36,6 +36,11 @@ public final class Freelook extends Module {
         return ActivationMode.HOLD;
     }
 
+    @Override
+    public boolean allowsKeyBind() {
+        return true;
+    }
+
     @EventTarget
     public void onTick(TickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();

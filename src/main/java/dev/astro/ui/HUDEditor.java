@@ -55,52 +55,16 @@ public final class HUDEditor extends GuiScreen {
     private static final int DONE_BTN_PAD   = 8;
 
     // ── State ──────────────────────────────────────────────────────────
-    private final List<DragElement> elements = new ArrayList<DragElement>();
-    private DragElement dragging;
-    private DragElement hovered;
+    private final List<HUDDragElement> elements = new ArrayList<HUDDragElement>();
+    private HUDDragElement dragging;
+    private HUDDragElement hovered;
     private int dragOffX, dragOffY;
     private boolean snappedCenterX;
     private boolean snappedCenterY;
 
-    /** Scoreboard anchor — resizable but not draggable. */
-    private AnchoredElement scoreboardAnchor;
+    /** Scoreboard anchor - resizable but not draggable. */
+    private HUDAnchoredElement scoreboardAnchor;
     private boolean scoreboardHovered;
-
-    /** Represents a non-HUDModule element anchored at a fixed position (resize only). */
-    private static final class AnchoredElement {
-        final String name;
-        final NumberSetting scaleSetting;
-        int x, y, w, h;
-
-        AnchoredElement(String name, NumberSetting scaleSetting) {
-            this.name = name;
-            this.scaleSetting = scaleSetting;
-        }
-
-        boolean contains(int mx, int my) {
-            return mx >= x && mx <= x + w && my >= y && my <= y + h;
-        }
-    }
-
-    /** Wraps a HUDModule for drag interaction. */
-    private static final class DragElement {
-        final String name;
-        final HUDModule hudModule;
-        int x, y, w, h;
-
-        DragElement(HUDModule mod) {
-            this.name = mod.getName();
-            this.hudModule = mod;
-            this.x = mod.getRenderX();
-            this.y = mod.getRenderY();
-            this.w = Math.max(mod.getWidth(), 40);
-            this.h = Math.max(mod.getHeight(), 14);
-        }
-
-        boolean contains(int mx, int my) {
-            return mx >= x && mx <= x + w && my >= y && my <= y + h;
-        }
-    }
 
     // ── Init ───────────────────────────────────────────────────────────
 
@@ -111,12 +75,12 @@ public final class HUDEditor extends GuiScreen {
 
         for (Module mod : AstroClient.INSTANCE.getModuleManager().getModules()) {
             if (mod instanceof HUDModule && mod.isEnabled()) {
-                elements.add(new DragElement((HUDModule) mod));
+                elements.add(new HUDDragElement((HUDModule) mod));
             }
             // Add scoreboard as a special anchored element
             if (mod instanceof ScoreboardMod && mod.isEnabled()) {
                 ScoreboardMod sbMod = (ScoreboardMod) mod;
-                scoreboardAnchor = new AnchoredElement("Scoreboard", sbMod.getScaleSetting());
+                scoreboardAnchor = new HUDAnchoredElement("Scoreboard", sbMod.getScaleSetting());
             }
         }
     }
@@ -158,7 +122,7 @@ public final class HUDEditor extends GuiScreen {
         }
 
         // 5. Draw each HUD element
-        for (DragElement el : elements) {
+        for (HUDDragElement el : elements) {
             // Sync size in case module content changed
             el.w = Math.max(el.hudModule.getWidth(), 40);
             el.h = Math.max(el.hudModule.getHeight(), 14);
@@ -269,7 +233,7 @@ public final class HUDEditor extends GuiScreen {
     }
 
     /** Floating name label above an element (shows scale if not 1x). */
-    private void drawTooltip(FontRenderer fr, DragElement el) {
+    private void drawTooltip(FontRenderer fr, HUDDragElement el) {
         String label = el.name;
         float s = el.hudModule.getScale();
         if (Math.abs(s - 1.0f) > 0.05f) {
@@ -332,7 +296,7 @@ public final class HUDEditor extends GuiScreen {
 
         // Element pick (reverse order = topmost first)
         for (int i = elements.size() - 1; i >= 0; i--) {
-            DragElement el = elements.get(i);
+            HUDDragElement el = elements.get(i);
             if (el.contains(mouseX, mouseY)) {
                 dragging = el;
                 dragOffX = mouseX - el.x;
@@ -389,7 +353,7 @@ public final class HUDEditor extends GuiScreen {
         super.mouseReleased(mouseX, mouseY, btn);
     }
 
-    private void applyPosition(DragElement el) {
+    private void applyPosition(HUDDragElement el) {
         el.hudModule.setRenderX(el.x);
         el.hudModule.setRenderY(el.y);
     }
@@ -399,7 +363,7 @@ public final class HUDEditor extends GuiScreen {
      * based on current scores and scale, matching ScoreboardMod's renderer.
      */
     @SuppressWarnings("unchecked")
-    private void computeScoreboardBounds(AnchoredElement anchor, ScaledResolution sr, FontRenderer fr) {
+    private void computeScoreboardBounds(HUDAnchoredElement anchor, ScaledResolution sr, FontRenderer fr) {
         if (mc.theWorld == null) {
             anchor.w = 0;
             anchor.h = 0;
@@ -481,7 +445,7 @@ public final class HUDEditor extends GuiScreen {
         if (wheel == 0) return;
 
         // HUD module elements first
-        DragElement target = (dragging != null) ? dragging : hovered;
+        HUDDragElement target = (dragging != null) ? dragging : hovered;
         if (target != null) {
             float step = 0.1f;
             float current = target.hudModule.getScale();

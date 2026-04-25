@@ -46,6 +46,7 @@ public final class ConfigManager {
         if (!configFile.exists()) return;
 
         loading = true;
+        boolean needsSave = false;
         try (Reader reader = new FileReader(configFile)) {
             JsonObject root = new JsonParser().parse(reader).getAsJsonObject();
 
@@ -55,7 +56,11 @@ public final class ConfigManager {
 
                 // Load keybind and visibility first
                 if (obj.has("keyBind")) {
-                    mod.setKeyBind(obj.get("keyBind").getAsInt());
+                    int keyBind = obj.get("keyBind").getAsInt();
+                    mod.setKeyBind(keyBind);
+                    if (mod.getKeyBind() != keyBind) {
+                        needsSave = true;
+                    }
                 }
                 if (obj.has("visible")) {
                     mod.setVisible(obj.get("visible").getAsBoolean());
@@ -96,6 +101,10 @@ public final class ConfigManager {
             System.err.println("[AstroClient] Failed to load config: " + e.getMessage());
         } finally {
             loading = false;
+        }
+
+        if (needsSave) {
+            save();
         }
     }
 

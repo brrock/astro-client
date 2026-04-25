@@ -105,6 +105,7 @@ public final class ModuleManager {
     public void onKey(KeyEvent event) {
         if (event.getKeyCode() == 0) return;
         for (Module m : modules) {
+            if (!m.allowsKeyBind()) continue;
             if (m.getActivationMode() != Module.ActivationMode.TOGGLE) continue;
             if (m.getKeyBind() == event.getKeyCode()) m.toggle();
         }
@@ -113,6 +114,7 @@ public final class ModuleManager {
     @EventTarget
     public void onTick(TickEvent event) {
         for (Module m : modules) {
+            if (!m.allowsKeyBind()) continue;
             if (m.getActivationMode() != Module.ActivationMode.HOLD) continue;
             int keyBind = m.getKeyBind();
             boolean shouldBeEnabled = keyBind != Keyboard.KEY_NONE && Keyboard.isKeyDown(keyBind);

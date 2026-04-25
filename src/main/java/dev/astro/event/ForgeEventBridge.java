@@ -11,6 +11,8 @@ import dev.astro.ui.HUDEditor;
 import dev.astro.ui.LoadingScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -59,10 +61,19 @@ public final class ForgeEventBridge {
         // HUD Editor
         if (AstroClient.keyHudEditor.isPressed()) {
             Minecraft mc = Minecraft.getMinecraft();
-            if (mc.currentScreen instanceof HUDEditor) {
-                mc.displayGuiScreen(null);
-            } else {
-                mc.displayGuiScreen(new HUDEditor());
+            try {
+                if (mc.currentScreen instanceof HUDEditor) {
+                    mc.displayGuiScreen(null);
+                } else {
+                    mc.displayGuiScreen(new HUDEditor());
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                if (mc.thePlayer != null) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText(
+                            EnumChatFormatting.AQUA + "[AstroClient] " +
+                            EnumChatFormatting.RED + "Failed to open HUD Editor. See launcher log."));
+                }
             }
         }
     }

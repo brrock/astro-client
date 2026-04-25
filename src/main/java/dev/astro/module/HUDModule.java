@@ -7,6 +7,7 @@ import dev.astro.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.input.Keyboard;
 
 import java.awt.Color;
 
@@ -81,6 +82,11 @@ public abstract class HUDModule extends Module {
     /** Override to change text colour. Default is white. */
     protected int getTextColour() { return 0xFFFFFFFF; }
 
+    @Override
+    public boolean allowsKeyBind() {
+        return false;
+    }
+
     /** Unscaled width of this element. */
     public int getBaseWidth() {
         String text = getText();
@@ -110,4 +116,9 @@ public abstract class HUDModule extends Module {
     public int  getRenderY()      { return renderY; }
     public void setRenderX(int x) { this.renderX = x; }
     public void setRenderY(int y) { this.renderY = y; }
+
+    @Override
+    protected void onEnable() {
+        setKeyBind(Keyboard.KEY_NONE);
+    }
 }

@@ -43,6 +43,11 @@ public final class Zoom extends Module {
         return ActivationMode.HOLD;
     }
 
+    @Override
+    public boolean allowsKeyBind() {
+        return true;
+    }
+
     @EventTarget
     public void onRender(Render2DEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
