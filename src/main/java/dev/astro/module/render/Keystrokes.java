@@ -1,5 +1,7 @@
 package dev.astro.module.render;
 
+import dev.astro.event.EventTarget;
+import dev.astro.event.events.MouseClickEvent;
 import dev.astro.module.Category;
 import dev.astro.module.HUDModule;
 import dev.astro.module.setting.BooleanSetting;
@@ -10,8 +12,10 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
+import org.lwjgl.input.Mouse;
 
 import java.awt.Color;
+import java.util.LinkedList;
 
 /**
  * Keystrokes — renders a compact W-A-S-D + LMB/RMB overlay.
@@ -31,8 +35,8 @@ public final class Keystrokes extends HUDModule {
 
     private int leftCPS;
     private int rightCPS;
-    private final java.util.LinkedList<Long> leftClicks = new java.util.LinkedList<Long>();
-    private final java.util.LinkedList<Long> rightClicks = new java.util.LinkedList<Long>();
+    private final LinkedList<Long> leftClicks = new LinkedList<Long>();
+    private final LinkedList<Long> rightClicks = new LinkedList<Long>();
 
     public Keystrokes() {
         super("Keystrokes",
@@ -46,21 +50,24 @@ public final class Keystrokes extends HUDModule {
         return null; // custom drawHUD
     }
 
+    @EventTarget
+    public void onMouseClick(MouseClickEvent event) {
+        long now = System.currentTimeMillis();
+        if (event.getButton() == 0) {
+            leftClicks.add(now);
+        } else if (event.getButton() == 1) {
+            rightClicks.add(now);
+        }
+    }
+
     @Override
     public void drawHUD(FontRenderer fr, int x, int y) {
         Minecraft mc = Minecraft.getMinecraft();
         GameSettings gs = mc.gameSettings;
 
-        // Track CPS
         long now = System.currentTimeMillis();
-        if (gs.keyBindAttack.isKeyDown()) {
-            if (leftClicks.isEmpty() || now - leftClicks.getLast() > 50) leftClicks.add(now);
-        }
-        if (gs.keyBindUseItem.isKeyDown()) {
-            if (rightClicks.isEmpty() || now - rightClicks.getLast() > 50) rightClicks.add(now);
-        }
-        while (!leftClicks.isEmpty() && now - leftClicks.peek() > 1000) leftClicks.poll();
-        while (!rightClicks.isEmpty() && now - rightClicks.peek() > 1000) rightClicks.poll();
+        pruneClicks(leftClicks, now);
+        pruneClicks(rightClicks, now);
         leftCPS = leftClicks.size();
         rightCPS = rightClicks.size();
 
@@ -85,10 +92,16 @@ public final class Keystrokes extends HUDModule {
         int halfW = (3 * BOX + 2 * GAP - GAP) / 2;
         String lmbLabel = showCPS.getValue() ? String.valueOf(leftCPS) : "LMB";
         String rmbLabel = showCPS.getValue() ? String.valueOf(rightCPS) : "RMB";
-        drawButton(fr, gs.keyBindAttack.isKeyDown(),  lmbLabel, kx, ky, halfW, bgInactive);
-        drawButton(fr, gs.keyBindUseItem.isKeyDown(), rmbLabel, kx + halfW + GAP, ky, halfW, bgInactive);
+        drawButton(fr, Mouse.isButtonDown(0), lmbLabel, kx, ky, halfW, bgInactive);
+        drawButton(fr, Mouse.isButtonDown(1), rmbLabel, kx + halfW + GAP, ky, halfW, bgInactive);
 
         GlStateManager.popMatrix();
+    }
+
+    private void pruneClicks(LinkedList<Long> clicks, long now) {
+        while (!clicks.isEmpty() && now - clicks.peek() > 1000) {
+            clicks.poll();
+        }
     }
 
     private void drawKey(FontRenderer fr, KeyBinding bind, String label, int x, int y, int bgInactive) {
@@ -115,4 +128,10 @@ public final class Keystrokes extends HUDModule {
 
     @Override
     public int getBaseHeight() { return (int)((3 * BOX + 2 * GAP) * scale.getFloatValue()); }
+
+    @Override
+    protected void onDisable() {
+        leftClicks.clear();
+        rightClicks.clear();
+    }
 }
