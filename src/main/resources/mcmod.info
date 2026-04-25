@@ -1,0 +1,15 @@
+[
+  {
+    "modid": "astroclient",
+    "name": "AstroClient",
+    "description": "A clean Bedwars client with a HUD and a modern ClickGUI.",
+    "version": "1.0.0",
+    "mcversion": "1.8.9",
+    "url": "",
+    "authorList": ["Brrock"],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

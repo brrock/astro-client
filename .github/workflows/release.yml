@@ -1,0 +1,41 @@
+name: Release Every Commit
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "8"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build release artifacts
+        run: ./gradlew --no-daemon clean build
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: commit-${{ github.sha }}
+          name: Commit ${{ github.sha }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          prerelease: true
+          files: build/libs/*.jar

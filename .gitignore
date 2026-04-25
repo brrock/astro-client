@@ -1,0 +1,6 @@
+build
+.gradle/
+# internal tool to copy generated jar to prism luancher to test
+deploy.sh 
+# internal tool to build on mac
+build.sh
